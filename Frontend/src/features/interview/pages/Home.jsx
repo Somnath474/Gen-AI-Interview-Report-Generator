@@ -5,23 +5,63 @@ import { useNavigate } from 'react-router'
 
 const Home = () => {
 
-    const { loading, generateReport,reports } = useInterview()
-    const [ jobDescription, setJobDescription ] = useState("")
-    const [ selfDescription, setSelfDescription ] = useState("")
+    const { loading, generateReport, reports } = useInterview()
+    const [jobDescription, setJobDescription] = useState("")
+    const [selfDescription, setSelfDescription] = useState("")
+    const [selectedFile, setSelectedFile] = useState(null)       // ✅ track selected file
+    const [error, setError] = useState("")                        // ✅ show errors to user
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
 
+    // ✅ Show filename when file is picked
+    const handleFileChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setSelectedFile(file)
+            setError("")
+        }
+    }
+
+    // ✅ Remove selected file
+    const handleRemoveFile = () => {
+        setSelectedFile(null)
+        resumeInputRef.current.value = ""
+    }
+
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+        setError("")
+
+        // ✅ Validate — need at least file OR selfDescription
+        if (!jobDescription.trim()) {
+            setError("Please enter the job description.")
+            return
+        }
+
+        if (!selectedFile && !selfDescription.trim()) {
+            setError("Please upload a resume OR fill in the self description.")
+            return
+        }
+
+        const data = await generateReport({
+            jobDescription,
+            selfDescription,
+            resumeFile: selectedFile   // ✅ use state, not ref
+        })
+
+        if (!data) {                   // ✅ guard against undefined
+            setError("Something went wrong. Please try again.")
+            return
+        }
+
         navigate(`/interview/${data._id}`)
     }
 
     if (loading) {
         return (
             <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
+                <h1>Analyzing your profile...</h1>
+                <p>Our AI is building your personalized interview strategy. This takes ~30 seconds.</p>
             </main>
         )
     }
@@ -34,6 +74,13 @@ const Home = () => {
                 <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
                 <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
             </header>
+
+            {/* Error Banner */}
+            {error && (
+                <div className='error-banner'>
+                    ⚠️ {error}
+                </div>
+            )}
 
             {/* Main Card */}
             <div className='interview-card'>
@@ -49,12 +96,12 @@ const Home = () => {
                             <span className='badge badge--required'>Required</span>
                         </div>
                         <textarea
-                            onChange={(e) => { setJobDescription(e.target.value) }}
+                            onChange={(e) => setJobDescription(e.target.value)}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
                             maxLength={5000}
                         />
-                        <div className='char-counter'>0 / 5000 chars</div>
+                        <div className='char-counter'>{jobDescription.length} / 5000 chars</div>
                     </div>
 
                     {/* Vertical Divider */}
@@ -75,24 +122,50 @@ const Home = () => {
                                 Upload Resume
                                 <span className='badge badge--best'>Best Results</span>
                             </label>
-                            <label className='dropzone' htmlFor='resume'>
-                                <span className='dropzone__icon'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
-                                </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
-                            </label>
+
+                            {/* ✅ Show file selected state */}
+                            {selectedFile ? (
+                                <div className='file-selected'>
+                                    <span className='file-selected__icon'>📄</span>
+                                    <span className='file-selected__name'>{selectedFile.name}</span>
+                                    <span className='file-selected__size'>
+                                        ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                    </span>
+                                    <button
+                                        className='file-selected__remove'
+                                        onClick={handleRemoveFile}
+                                    >
+                                        ✕ Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className='dropzone' htmlFor='resume'>
+                                    <span className='dropzone__icon'>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                    </span>
+                                    <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
+                                    <p className='dropzone__subtitle'>PDF only (Max 5MB)</p>  {/* ✅ was PDF or DOCX — DOCX fails multer */}
+                                    <input
+                                        ref={resumeInputRef}
+                                        hidden
+                                        type='file'
+                                        id='resume'
+                                        name='resume'
+                                        accept='.pdf'              // ✅ PDF only to match multer
+                                        onChange={handleFileChange} // ✅ track file in state
+                                    />
+                                </label>
+                            )}
                         </div>
 
                         {/* OR Divider */}
                         <div className='or-divider'><span>OR</span></div>
 
-                        {/* Quick Self-Description */}
+                        {/* Self Description */}
                         <div className='self-description'>
                             <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
                             <textarea
-                                onChange={(e) => { setSelfDescription(e.target.value) }}
+                                onChange={(e) => setSelfDescription(e.target.value)}
                                 id='selfDescription'
                                 name='selfDescription'
                                 className='panel__textarea panel__textarea--short'
@@ -115,15 +188,17 @@ const Home = () => {
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
                     <button
                         onClick={handleGenerateReport}
-                        className='generate-btn'>
+                        className='generate-btn'
+                        disabled={loading}
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
                         Generate My Interview Strategy
                     </button>
                 </div>
             </div>
 
-            {/* Recent Reports List */}
-            {reports.length > 0 && (
+            {/* Recent Reports */}
+            {reports && reports.length > 0 && (
                 <section className='recent-reports'>
                     <h2>My Recent Interview Plans</h2>
                     <ul className='reports-list'>
@@ -131,14 +206,16 @@ const Home = () => {
                             <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
                                 <h3>{report.title || 'Untitled Position'}</h3>
                                 <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
-                                <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
+                                <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>
+                                    Match Score: {report.matchScore}%
+                                </p>
                             </li>
                         ))}
                     </ul>
                 </section>
             )}
 
-            {/* Page Footer */}
+            {/* Footer */}
             <footer className='page-footer'>
                 <a href='#'>Privacy Policy</a>
                 <a href='#'>Terms of Service</a>

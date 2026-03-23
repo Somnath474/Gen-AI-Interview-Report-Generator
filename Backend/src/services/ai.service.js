@@ -9,41 +9,79 @@ const ai = new GoogleGenAI({
 
 
 // ================== SCHEMA ==================
+// ✅ NO nested z.array() — Gemini can't handle them reliably
+// All arrays flattened to individual string fields
 const interviewReportSchema = z.object({
     title: z.string(),
     matchScore: z.number().min(0).max(100),
-    summary: z.string(),  // ✅ new — candidate strength summary
+    summary: z.string(),
 
     technicalQuestions: z.array(z.object({
         question: z.string(),
-        difficulty: z.enum(["easy", "medium", "hard"]),  // ✅ new
+        difficulty: z.enum(["easy", "medium", "hard"]),
         intention: z.string(),
         answer: z.string(),
-        codeExample: z.string().optional()               // ✅ new — code if relevant
-    })).min(8),                                          // ✅ was 3, now 8
+        codeExample: z.string()   // ✅ not optional — Gemini needs all fields required
+    })).min(8),
 
     behavioralQuestions: z.array(z.object({
         question: z.string(),
         intention: z.string(),
-        answer: z.string(),                              // full STAR answer
-        redFlags: z.string()                             // ✅ new — what NOT to say
-    })).min(5),                                          // ✅ was 2, now 5
+        answer: z.string(),
+        redFlags: z.string()
+    })).min(5),
 
     skillGaps: z.array(z.object({
         skill: z.string(),
         severity: z.enum(["low", "medium", "high"]),
-        reason: z.string(),                              // ✅ new — why it's a gap
-        resources: z.array(z.string())                  // ✅ new — fix resources
-    })).min(4),                                          // ✅ was 2, now 4
+        reason: z.string(),
+        resourceOne: z.string(),    // ✅ flattened — no nested array
+        resourceTwo: z.string(),
+        resourceThree: z.string()
+    })).min(4),
 
     preparationPlan: z.array(z.object({
         day: z.number(),
         focus: z.string(),
-        tasks: z.array(z.string()).min(4),               // ✅ min 4 tasks per day
-        resources: z.array(z.string()),                  // ✅ new — links/books
-        expectedOutcome: z.string()                      // ✅ new — what you'll achieve
-    })).min(7)                                           // ✅ was 3, now full 7 days
+        taskOne: z.string(),        // ✅ flattened — no nested array
+        taskTwo: z.string(),
+        taskThree: z.string(),
+        taskFour: z.string(),
+        resourceOne: z.string(),    // ✅ flattened
+        resourceTwo: z.string(),
+        expectedOutcome: z.string()
+    })).min(7)
 });
+
+
+// ================== RESHAPE ==================
+// ✅ After AI responds, reshape flat fields back into arrays
+function reshapeAiResponse(data) {
+    return {
+        title: data.title,
+        matchScore: data.matchScore,
+        summary: data.summary,
+
+        technicalQuestions: data.technicalQuestions,
+
+        behavioralQuestions: data.behavioralQuestions,
+
+        skillGaps: data.skillGaps.map(gap => ({
+            skill: gap.skill,
+            severity: gap.severity,
+            reason: gap.reason,
+            resources: [gap.resourceOne, gap.resourceTwo, gap.resourceThree].filter(Boolean)
+        })),
+
+        preparationPlan: data.preparationPlan.map(day => ({
+            day: day.day,
+            focus: day.focus,
+            tasks: [day.taskOne, day.taskTwo, day.taskThree, day.taskFour].filter(Boolean),
+            resources: [day.resourceOne, day.resourceTwo].filter(Boolean),
+            expectedOutcome: day.expectedOutcome
+        }))
+    }
+}
 
 
 // ================== SAFE PARSE ==================
@@ -109,7 +147,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
     const prompt = `
 You are a FAANG-level senior hiring manager and interview coach with 15+ years of experience.
 
-Your job is to deeply analyze this candidate and generate the most DETAILED, PERSONALIZED, and ACTIONABLE interview preparation report possible.
+Deeply analyze this candidate and generate the most DETAILED, PERSONALIZED, ACTIONABLE interview preparation report possible.
 
 ========================
 CANDIDATE PROFILE
@@ -126,46 +164,43 @@ ${jobDescription}
 ========================
 YOUR TASK
 ========================
-Generate a comprehensive interview report with:
+Generate a comprehensive interview report with ALL of these:
 
-1. TITLE — Exact role name from job description
+1. TITLE — Exact role name from the job description
 
-2. MATCH SCORE — Honest 0-100 score based on how well candidate fits
+2. MATCH SCORE — Honest 0-100 score based on how well candidate fits this specific role
 
-3. SUMMARY — 3-4 sentence paragraph highlighting candidate's key strengths and biggest gaps for THIS specific role
+3. SUMMARY — 3-4 sentences on candidate's key strengths and biggest gaps for THIS role
 
-4. TECHNICAL QUESTIONS (minimum 8, mix of easy/medium/hard):
-   - MUST be highly specific to the job description technologies
-   - Include real-world scenario-based questions
-   - Give step-by-step detailed answers
-   - Include code examples where relevant
-   - Explain WHY interviewer asks this
+4. TECHNICAL QUESTIONS — exactly 8, mix of easy/medium/hard:
+   - Must be specific to the technologies in the job description
+   - Real-world scenario-based
+   - Step-by-step detailed answers (minimum 5 sentences each)
+   - Include code in codeExample where relevant, else leave empty string ""
+   - Explain deeply WHY interviewer asks this
 
-5. BEHAVIORAL QUESTIONS (minimum 5):
-   - Based on company culture and job level
-   - Full STAR method answers
-   - Include red flags — what NOT to say
+5. BEHAVIORAL QUESTIONS — exactly 5:
+   - Based on company culture and seniority level
+   - Full STAR method answers (minimum 5 sentences)
+   - redFlags: what NOT to say and why
 
-6. SKILL GAPS (minimum 4):
-   - Be brutally honest
-   - Explain exactly why it's a gap for THIS role
-   - Give 2-3 specific resources to fix each gap
+6. SKILL GAPS — exactly 4:
+   - Specific to this job role
+   - Honest reason why it's a gap
+   - resourceOne, resourceTwo, resourceThree: specific course/book/website names
 
-7. 7-DAY PREPARATION PLAN:
-   - Day-by-day, topic-specific plan
-   - Minimum 4 tasks per day
-   - Include specific resources (books, courses, websites)
-   - Include expected outcome per day
-   - Make it realistic and achievable
+7. PREPARATION PLAN — exactly 7 days:
+   - taskOne, taskTwo, taskThree, taskFour: very specific actionable tasks
+   - resourceOne, resourceTwo: specific URLs or book names
+   - expectedOutcome: what the candidate will be able to do after this day
 
 ========================
-STRICT RULES
+RULES
 ========================
-- Return ONLY valid JSON matching the schema — no extra text
-- Be EXTREMELY specific — no generic advice
-- Personalize EVERYTHING based on the resume and job description
-- Technical question answers must be interview-ready, detailed, and impressive
-- The 7-day plan must feel like it was made by a personal coach
+- Return ONLY valid JSON — no extra text
+- All string fields must be non-empty
+- Personalize EVERYTHING to this candidate's resume and job description
+- Answers must be detailed, impressive, and interview-ready
 `
 
     try {
@@ -178,16 +213,22 @@ STRICT RULES
             }
         });
 
-        const parsed = safeParseJSON(response.text);
-        if (!parsed) return fallbackData();
+        console.log("✅ RAW AI RESPONSE:", response.text)   // ← check terminal
 
-        const validated = interviewReportSchema.safeParse(parsed);
-        if (!validated.success) {
-            console.error("❌ ZOD VALIDATION FAILED:", validated.error);
+        const parsed = safeParseJSON(response.text);
+        if (!parsed) {
+            console.error("❌ PARSE FAILED — returning fallback")
             return fallbackData();
         }
 
-        return validated.data;
+        const validated = interviewReportSchema.safeParse(parsed);
+        if (!validated.success) {
+            console.error("❌ ZOD FAILED:", JSON.stringify(validated.error, null, 2))
+            return fallbackData();
+        }
+
+        // ✅ Reshape flat fields back into arrays before returning
+        return reshapeAiResponse(validated.data);
 
     } catch (err) {
         console.error("❌ AI ERROR:", err);
@@ -199,8 +240,13 @@ STRICT RULES
 // ================== PDF HELPER ==================
 async function generatePdfFromHtml(htmlContent) {
     const browser = await puppeteer.launch({
-        headless: "new",
-        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu"
+        ]
     });
 
     const page = await browser.newPage();
@@ -218,13 +264,16 @@ async function generatePdfFromHtml(htmlContent) {
 
 
 // ================== GENERATE RESUME PDF ==================
-// ✅ Fixed — prompt now correctly asks for HTML resume, not interview report JSON
 async function generateResumePdf({ resume, jobDescription, selfDescription }) {
+
+    const resumePdfSchema = z.object({
+        html: z.string()
+    });
 
     const prompt = `
 You are a world-class resume designer and career coach.
 
-Create a stunning, ATS-optimized, single-page HTML resume for this candidate targeting the job below.
+Create a stunning, ATS-optimized HTML resume for this candidate targeting the job below.
 
 ========================
 CANDIDATE DATA
@@ -241,40 +290,34 @@ ${jobDescription}
 ========================
 INSTRUCTIONS
 ========================
-- Return ONLY a JSON object: { "html": "<full html string>" }
-- The HTML must be complete, self-contained with inline CSS
-- Make it visually impressive — like a top 1% resume
-- ATS friendly — use proper headings and keywords from job description
-- Single page A4 layout
-- Use a clean, modern, professional design
+- Return ONLY { "html": "..." } — no extra text whatsoever
+- The HTML must be 100% complete and self-contained
+- All CSS must be inside a <style> tag in <head> — no external files
+- Must look great printed to A4 PDF
 
 ========================
 DESIGN REQUIREMENTS
 ========================
-- Color scheme: Deep navy (#1a237e) header with white text, clean white body
-- Font: Use Google Font 'Inter' via CDN link
-- Sections: Summary, Skills, Experience, Projects, Education
-- Skills: Show as modern tags/pills
-- Use icons from CDN (font-awesome) for contact info
-- Add a subtle left border accent on experience items
-- Quantify achievements wherever possible based on resume content
-- Tailor the summary specifically to the job description keywords
-- Make it look like it was designed by a professional designer
+- Color: Deep navy (#1a237e) header, white body
+- Font: Import 'Inter' from Google Fonts CDN
+- Sections in order: Header (name+contact), Summary, Skills, Experience, Projects, Education
+- Skills: render as pill/tag badges
+- Contact icons: use Font Awesome 6 CDN
+- Experience items: subtle left border in navy
+- Quantify all achievements from resume data
+- Summary: tailored to the job description keywords
+- Professional, clean, impressive — like a top designer made it
 
 ========================
 STRICT RULES
 ========================
-- Return ONLY { "html": "..." } — no extra text
-- HTML must be complete with <!DOCTYPE html> tag
-- All CSS must be inline in a <style> tag in <head>
-- Must look great when printed to A4 PDF
+- HTML must start with <!DOCTYPE html>
+- Return ONLY the JSON object { "html": "..." }
+- Every section must be populated with real data from the candidate
+- No placeholder text like "Your Name" or "Company Name"
 `
 
     try {
-        const resumePdfSchema = z.object({
-            html: z.string()
-        });
-
         const response = await ai.models.generateContent({
             model: "gemini-2.0-flash",
             contents: prompt,
@@ -284,10 +327,12 @@ STRICT RULES
             }
         });
 
+        console.log("✅ PDF AI RESPONSE LENGTH:", response.text?.length)  // ← check terminal
+
         const parsed = safeParseJSON(response.text);
 
         if (!parsed || !parsed.html) {
-            throw new Error("Invalid HTML from AI");
+            throw new Error("❌ Invalid or empty HTML from AI")
         }
 
         return await generatePdfFromHtml(parsed.html);
