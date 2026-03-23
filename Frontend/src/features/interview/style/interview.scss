@@ -1,182 +1,104 @@
-// ── Google Fonts Import ───────────────────────────────────────────────────────
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+// ── Shared Variables (mirrors home.scss theme) ────────────────────────────────
+$bg-page: #0d1117;
+$bg-card: #161b22;
+$bg-panel: #1c2230;
+$bg-input: #1e2535;
+$border-color: #2a3348;
+$text-primary: #e6edf3;
+$text-muted: #7d8590;
+$accent: #ff2d78;
+$font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-// ── Variables ─────────────────────────────────────────────────────────────────
-$bg-page:        #070810;
-$bg-card:        #0e1018;
-$bg-panel:       #111420;
-$bg-input:       #0b0d15;
-$border-color:   rgba(255,255,255,0.07);
-$text-primary:   #f0f2ff;
-$text-muted:     #5a6080;
-$accent:         #ff2d78;
-$accent-alt:     #ff6fa3;
-$cyan:           #00d4ff;
-$severity-high:  #ff4d6d;
-$severity-med:   #f5a623;
-$severity-low:   #2dd68c;
-$font-display:   'Syne', sans-serif;
-$font-body:      'Plus Jakarta Sans', sans-serif;
+// severity palette
+$severity-high: #ff4d4d;
+$severity-medium: #f5a623;
+$severity-low: #3fb950;
 
-// ── Keyframes ─────────────────────────────────────────────────────────────────
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position:  200% center; }
-}
-
-@keyframes spin-ring {
-    to { stroke-dashoffset: -283; }
-}
-
-*::-webkit-scrollbar { width: 4px; }
-*::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.08);
-    border-radius: 4px;
-    &:hover { background: rgba(255,255,255,0.15); }
+*::-webkit-scrollbar {
+    display: none;
 }
 
 // ── Page Shell ────────────────────────────────────────────────────────────────
 .interview-page {
     width: 100%;
     min-height: 100vh;
-    background: $bg-page;
+    background-color: $bg-page;
     color: $text-primary;
-    font-family: $font-body;
+    font-family: $font-stack;
     display: flex;
     align-items: stretch;
     padding: 1.5rem;
     box-sizing: border-box;
-    position: relative;
-
-    &::before {
-        content: '';
-        position: fixed;
-        top: -30%;
-        right: -10%;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,45,120,0.07) 0%, transparent 70%);
-        pointer-events: none;
-    }
 }
 
-// Loading
-.loading-screen {
-    width: 100%;
-    min-height: 100vh;
-    background: $bg-page;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: $font-display;
-
-    h1 {
-        font-size: 1.5rem;
-        font-weight: 500;
-        background: linear-gradient(90deg, $text-muted, $accent, $text-muted);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shimmer 2s linear infinite;
-    }
-}
-
-// ── Layout ────────────────────────────────────────────────────────────────────
+// ── 3-Column Layout ───────────────────────────────────────────────────────────
 .interview-layout {
     display: flex;
     width: 100%;
-    max-width: 1300px;
+    max-width: 1280px;
     margin: 0 auto;
-    background: linear-gradient(145deg, rgba(18,20,32,0.97) 0%, rgba(14,16,24,0.99) 100%);
+    background-color: $bg-card;
     border: 1px solid $border-color;
-    border-radius: 1.25rem;
-    overflow: hidden;
-    position: relative;
-    animation: fadeUp 0.5s ease both;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, $accent 30%, $cyan 70%, transparent);
-        pointer-events: none;
-    }
+    border-radius: 1rem;
+    justify-content: space-between;
 }
 
 .interview-divider {
     width: 1px;
-    background: linear-gradient(to bottom, transparent, $border-color 15%, $border-color 85%, transparent);
+    background-color: $border-color;
     flex-shrink: 0;
 }
 
-// ── Left Nav ──────────────────────────────────────────────────────────────────
+// ── Left Nav ─────────────────────────────────────────────────────────────────
 .interview-nav {
-    width: 230px;
+    width: 220px;
     flex-shrink: 0;
     padding: 1.75rem 1rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 0.25rem;
 
-    .nav-content { display: flex; flex-direction: column; gap: 0.2rem; }
+
+
 
     &__label {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: rgba($text-muted, 0.6);
+        letter-spacing: 0.08em;
+        color: $text-muted;
         padding: 0 0.75rem;
-        margin-bottom: 0.6rem;
-        font-family: $font-display;
+        margin-bottom: 0.5rem;
     }
 
     &__item {
         display: flex;
         align-items: center;
-        gap: 0.65rem;
+        gap: 0.6rem;
         width: 100%;
-        padding: 0.7rem 0.85rem;
+        padding: 0.65rem 0.75rem;
         background: none;
         border: none;
-        border-radius: 0.6rem;
+        border-radius: 0.5rem;
         color: $text-muted;
-        font-family: $font-body;
-        font-size: 0.85rem;
-        font-weight: 500;
+        font-family: $font-stack;
+        font-size: 0.875rem;
         cursor: pointer;
         text-align: left;
-        transition: all 0.2s ease;
-        position: relative;
+        transition: background-color 0.15s, color 0.15s;
 
         &:hover {
-            background: rgba(255,255,255,0.04);
+            background-color: $bg-panel;
             color: $text-primary;
         }
 
         &--active {
-            background: rgba($accent, 0.1);
+            background-color: rgba($accent, 0.1);
             color: $accent;
-            border: 1px solid rgba($accent, 0.15);
 
-            .interview-nav__icon svg { stroke: $accent; }
-
-            &::before {
-                content: '';
-                position: absolute;
-                left: 0; top: 25%; bottom: 25%;
-                width: 2px;
-                background: $accent;
-                border-radius: 0 2px 2px 0;
-                box-shadow: 0 0 8px rgba($accent, 0.6);
+            .interview-nav__icon svg {
+                stroke: $accent;
             }
         }
     }
@@ -186,71 +108,52 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
         align-items: center;
         flex-shrink: 0;
     }
-
-    // Download button
-    .button.primary-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.7rem 1rem;
-        background: linear-gradient(135deg, rgba($accent, 0.15), rgba($accent, 0.08));
-        border: 1px solid rgba($accent, 0.25);
-        border-radius: 0.6rem;
-        color: $accent;
-        font-family: $font-display;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        text-align: center;
-
-        &:hover {
-            background: linear-gradient(135deg, rgba($accent, 0.25), rgba($accent, 0.15));
-            box-shadow: 0 4px 20px rgba($accent, 0.2);
-            transform: translateY(-1px);
-        }
-    }
 }
 
 // ── Center Content ────────────────────────────────────────────────────────────
 .interview-content {
     flex: 1;
-    padding: 2rem 2.25rem;
+    padding: 1.75rem 2rem;
     overflow-y: auto;
+    min-height: initial;
     max-height: calc(100vh - 3rem);
     padding-bottom: 5rem;
+    align-items: flex-start;
 
-    section { min-height: 100%; }
+
+
+
+
+
+
+
+    section {
+        min-height: 100%;
+    }
 }
 
 .content-header {
     display: flex;
     align-items: baseline;
     gap: 0.75rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid $border-color;
 
     h2 {
-        font-family: $font-display;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         font-weight: 700;
         color: $text-primary;
         margin: 0;
-        letter-spacing: -0.01em;
     }
 
     &__count {
-        font-size: 0.72rem;
+        font-size: 0.8rem;
         color: $text-muted;
-        background: rgba(255,255,255,0.05);
-        padding: 0.18rem 0.65rem;
+        background-color: $bg-panel;
+        padding: 0.15rem 0.6rem;
         border-radius: 2rem;
         border: 1px solid $border-color;
-        font-family: $font-display;
-        font-weight: 600;
-        letter-spacing: 0.03em;
     }
 }
 
@@ -258,45 +161,39 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
 .q-list {
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.75rem;
 }
 
 .q-card {
-    background: rgba($bg-panel, 0.8);
+    background-color: $bg-panel;
     border: 1px solid $border-color;
-    border-radius: 0.75rem;
+    border-radius: 0.6rem;
     overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s;
 
     &:hover {
-        border-color: rgba(255,255,255,0.12);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        border-color: lighten($border-color, 8%);
     }
 
     &__header {
         display: flex;
         align-items: flex-start;
-        gap: 0.85rem;
-        padding: 1rem 1.1rem;
+        gap: 0.75rem;
+        padding: 0.9rem 1rem;
         cursor: pointer;
         user-select: none;
-        transition: background 0.2s;
-
-        &:hover { background: rgba(255,255,255,0.02); }
     }
 
     &__index {
         flex-shrink: 0;
-        font-size: 0.65rem;
-        font-weight: 800;
-        font-family: $font-display;
+        font-size: 0.7rem;
+        font-weight: 700;
         color: $accent;
-        background: rgba($accent, 0.1);
+        background-color: rgba($accent, 0.1);
         border: 1px solid rgba($accent, 0.2);
-        border-radius: 0.35rem;
-        padding: 0.18rem 0.45rem;
+        border-radius: 0.3rem;
+        padding: 0.15rem 0.4rem;
         margin-top: 2px;
-        letter-spacing: 0.04em;
     }
 
     &__question {
@@ -305,13 +202,13 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
         font-size: 0.9rem;
         font-weight: 500;
         color: $text-primary;
-        line-height: 1.55;
+        line-height: 1.5;
     }
 
     &__chevron {
         flex-shrink: 0;
         color: $text-muted;
-        transition: transform 0.25s ease, color 0.2s;
+        transition: transform 0.2s;
         margin-top: 2px;
 
         &--open {
@@ -321,48 +218,46 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
     }
 
     &__body {
-        padding: 1rem 1.1rem;
+        padding: 0 1rem 1rem;
         display: flex;
         flex-direction: column;
-        gap: 0.85rem;
+        gap: 0.75rem;
         border-top: 1px solid $border-color;
-        background: rgba(0,0,0,0.15);
-        animation: fadeUp 0.2s ease both;
+        padding-top: 0.75rem;
     }
 
     &__section {
         display: flex;
         flex-direction: column;
-        gap: 0.45rem;
+        gap: 0.4rem;
 
         p {
             margin: 0;
-            font-size: 0.85rem;
-            color: rgba($text-primary, 0.7);
-            line-height: 1.65;
+            font-size: 0.835rem;
+            color: lighten($text-muted, 15%);
+            line-height: 1.6;
         }
     }
 
     &__tag {
-        font-size: 0.65rem;
+        font-size: 0.68rem;
         font-weight: 700;
-        font-family: $font-display;
         text-transform: uppercase;
-        letter-spacing: 0.07em;
-        padding: 0.18rem 0.55rem;
-        border-radius: 0.3rem;
+        letter-spacing: 0.06em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.25rem;
         width: fit-content;
 
         &--intention {
-            color: #c4b5fd;
-            background: rgba(#a78bfa, 0.1);
+            color: #a78bfa;
+            background-color: rgba(#a78bfa, 0.1);
             border: 1px solid rgba(#a78bfa, 0.2);
         }
 
         &--answer {
-            color: $severity-low;
-            background: rgba($severity-low, 0.1);
-            border: 1px solid rgba($severity-low, 0.2);
+            color: #3fb950;
+            background-color: rgba(#3fb950, 0.1);
+            border: 1px solid rgba(#3fb950, 0.2);
         }
     }
 }
@@ -374,14 +269,15 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
     gap: 0;
     position: relative;
 
+    // vertical timeline line
     &::before {
         content: '';
         position: absolute;
-        left: 30px;
-        top: 12px;
-        bottom: 12px;
+        left: 28px;
+        top: 0;
+        bottom: 0;
         width: 2px;
-        background: linear-gradient(to bottom, $accent, rgba($accent, 0.05));
+        background: linear-gradient(to bottom, $accent, rgba($accent, 0.1));
         border-radius: 1px;
     }
 }
@@ -390,50 +286,42 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.85rem 0 0.85rem 3.75rem;
+    padding: 0.75rem 0 0.75rem 3.5rem;
     position: relative;
 
+    // dot on timeline
     &::before {
         content: '';
         position: absolute;
-        left: 23px;
-        top: 1.15rem;
+        left: 21px;
+        top: 1.05rem;
         width: 14px;
         height: 14px;
         border-radius: 50%;
-        background: $bg-card;
+        background-color: $bg-card;
         border: 2px solid $accent;
-        box-shadow: 0 0 8px rgba($accent, 0.4);
-        transition: box-shadow 0.2s;
-    }
-
-    &:hover::before {
-        box-shadow: 0 0 16px rgba($accent, 0.7);
     }
 
     &__header {
         display: flex;
         align-items: center;
-        gap: 0.65rem;
+        gap: 0.6rem;
     }
 
     &__badge {
-        font-size: 0.65rem;
-        font-weight: 800;
-        font-family: $font-display;
+        font-size: 0.7rem;
+        font-weight: 700;
         color: $accent;
-        background: rgba($accent, 0.1);
+        background-color: rgba($accent, 0.1);
         border: 1px solid rgba($accent, 0.25);
-        padding: 0.12rem 0.55rem;
+        padding: 0.1rem 0.5rem;
         border-radius: 2rem;
-        letter-spacing: 0.05em;
     }
 
     &__focus {
         margin: 0;
-        font-size: 0.92rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        font-family: $font-display;
         color: $text-primary;
     }
 
@@ -443,15 +331,15 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.35rem;
 
         li {
             display: flex;
             align-items: flex-start;
-            gap: 0.55rem;
-            font-size: 0.84rem;
-            color: rgba($text-primary, 0.55);
-            line-height: 1.55;
+            gap: 0.5rem;
+            font-size: 0.845rem;
+            color: lighten($text-muted, 12%);
+            line-height: 1.5;
         }
     }
 
@@ -460,24 +348,24 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
         width: 5px;
         height: 5px;
         border-radius: 50%;
-        background: rgba($accent, 0.4);
+        background-color: $text-muted;
         margin-top: 8px;
     }
 }
 
 // ── Right Sidebar ─────────────────────────────────────────────────────────────
 .interview-sidebar {
-    width: 250px;
+    width: 240px;
     flex-shrink: 0;
-    padding: 1.75rem 1.5rem;
+    padding: 1.75rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .sidebar-divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, $border-color 20%, $border-color 80%, transparent);
+    background-color: $border-color;
 }
 
 // Match Score
@@ -485,95 +373,59 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
 
     &__label {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: 0.75rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.08em;
         color: $text-muted;
         margin: 0;
         align-self: flex-start;
-        font-family: $font-display;
     }
 
     &__ring {
-        width: 110px;
-        height: 110px;
+        width: 90px;
+        height: 90px;
         border-radius: 50%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: relative;
-        border: none;
-
-        // outer glow ring
-        &::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            border: 3px solid;
-            opacity: 0.25;
-        }
-
-        &::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 3px solid transparent;
-        }
+        border: 4px solid;
 
         &.score--high {
-            background: radial-gradient(circle, rgba($severity-low, 0.08) 0%, transparent 70%);
-            border: 3px solid $severity-low;
-            box-shadow: 0 0 24px rgba($severity-low, 0.25), inset 0 0 20px rgba($severity-low, 0.05);
-
-            &::before { border-color: $severity-low; }
+            border-color: $severity-low;
         }
 
         &.score--mid {
-            background: radial-gradient(circle, rgba($severity-med, 0.08) 0%, transparent 70%);
-            border: 3px solid $severity-med;
-            box-shadow: 0 0 24px rgba($severity-med, 0.25), inset 0 0 20px rgba($severity-med, 0.05);
-
-            &::before { border-color: $severity-med; }
+            border-color: $severity-medium;
         }
 
         &.score--low {
-            background: radial-gradient(circle, rgba($severity-high, 0.08) 0%, transparent 70%);
-            border: 3px solid $severity-high;
-            box-shadow: 0 0 24px rgba($severity-high, 0.25), inset 0 0 20px rgba($severity-high, 0.05);
-
-            &::before { border-color: $severity-high; }
+            border-color: $severity-high;
         }
     }
 
     &__value {
-        font-family: $font-display;
-        font-size: 2rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: $text-primary;
         line-height: 1;
-        letter-spacing: -0.04em;
     }
 
     &__pct {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: $text-muted;
-        font-weight: 600;
         margin-top: -2px;
     }
 
     &__sub {
         margin: 0;
-        font-size: 0.73rem;
+        font-size: 0.75rem;
         color: $severity-low;
         text-align: center;
-        font-weight: 500;
     }
 }
 
@@ -581,52 +433,47 @@ $font-body:      'Plus Jakarta Sans', sans-serif;
 .skill-gaps {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 0.75rem;
 
     &__label {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: 0.75rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.08em;
         color: $text-muted;
         margin: 0;
-        font-family: $font-display;
     }
 
     &__list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.45rem;
+        gap: 0.5rem;
     }
 }
 
 .skill-tag {
-    font-size: 0.73rem;
-    font-weight: 600;
-    padding: 0.28rem 0.7rem;
+    font-size: 0.775rem;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
     border-radius: 0.4rem;
     border: 1px solid;
     cursor: default;
-    font-family: $font-body;
-    transition: transform 0.15s;
-
-    &:hover { transform: scale(1.04); }
 
     &--high {
         color: $severity-high;
-        background: rgba($severity-high, 0.1);
+        background-color: rgba($severity-high, 0.1);
         border-color: rgba($severity-high, 0.25);
     }
 
     &--medium {
-        color: $severity-med;
-        background: rgba($severity-med, 0.1);
-        border-color: rgba($severity-med, 0.25);
+        color: $severity-medium;
+        background-color: rgba($severity-medium, 0.1);
+        border-color: rgba($severity-medium, 0.25);
     }
 
     &--low {
         color: $severity-low;
-        background: rgba($severity-low, 0.1);
+        background-color: rgba($severity-low, 0.1);
         border-color: rgba($severity-low, 0.25);
     }
 }

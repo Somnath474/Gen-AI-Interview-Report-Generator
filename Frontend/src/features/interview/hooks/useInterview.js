@@ -1,116 +1,84 @@
-    const [loading, setLoading] = useState(false);
-import { useState, useCallback } from "react";
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
+import { useContext, useEffect } from "react"
+import { InterviewContext } from "../interview.context"
+import { useParams } from "react-router"
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
-const authHeaders = () => ({
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-});
 
 export const useInterview = () => {
-    const [loading, setLoading] = useState(false);
-    const [reports, setReports] = useState([]);
-    const [report, setReport]   = useState(null);
-    const [error, setError]     = useState(null);
 
-    // ── Generate a new report ─────────────────────────────────────────────────
-    const generateReport = useCallback(async ({ jobDescription, selfDescription, resumeFile }) => {
-        setLoading(true);
-        setError(null);
+    const context = useContext(InterviewContext)
+    const { interviewId } = useParams()
+
+    if (!context) {
+        throw new Error("useInterview must be used within an InterviewProvider")
+    }
+
+    const { loading, setLoading, report, setReport, reports, setReports } = context
+
+    const generateReport = async ({ jobDescription, selfDescription, resumeFile }) => {
+        setLoading(true)
         try {
-            const formData = new FormData();
-            formData.append("jobDescription", jobDescription);
-            if (resumeFile)       formData.append("resume", resumeFile);
-            if (selfDescription)  formData.append("selfDescription", selfDescription);
-
-            const res = await fetch(`${API_BASE}/interview/generate`, {
-                method: "POST",
-                headers: authHeaders(),
-                body: formData,
-            });
-
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || `Request failed (${res.status})`);
-            }
-
-            const data = await res.json();
-            setReports((prev) => [data, ...prev]);
-            return data;
-        } catch (err) {
-            setError(err.message);
-            console.error("[useInterview] generateReport:", err);
-            throw err;
+            const response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
+            setReport(response.interviewReport)
+            return response.interviewReport  // ✅ moved inside try
+        } catch (error) {
+            console.log(error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, []);
+    }
 
-    // ── Get all reports ───────────────────────────────────────────────────────
-    const getReports = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+    const getReportById = async (interviewId) => {
+        setLoading(true)
         try {
-            const res = await fetch(`${API_BASE}/interview`, {
-                headers: authHeaders(),
-            });
-            if (!res.ok) throw new Error(`Request failed (${res.status})`);
-            const data = await res.json();
-            setReports(data);
-            return data;
-        } catch (err) {
-            setError(err.message);
-            console.error("[useInterview] getReports:", err);
+            const response = await getInterviewReportById(interviewId)
+            setReport(response.interviewReport)
+            return response.interviewReport  // ✅ moved inside try
+        } catch (error) {
+            console.log(error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, []);
+    }
 
-    // ── Get single report by ID ───────────────────────────────────────────────
-    const getReportById = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
+    const getReports = async () => {
+        setLoading(true)
         try {
-            const res = await fetch(`${API_BASE}/interview/${id}`, {
-                headers: authHeaders(),
-            });
-            if (!res.ok) throw new Error(`Request failed (${res.status})`);
-            const data = await res.json();
-            setReport(data);
-            return data;
-        } catch (err) {
-            setError(err.message);
-            console.error("[useInterview] getReportById:", err);
+            const response = await getAllInterviewReports()
+            setReports(response.interviewReports)
+            return response.interviewReports  // ✅ moved inside try
+        } catch (error) {
+            console.log(error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, []);
+    }
 
-    // ── Download resume PDF ───────────────────────────────────────────────────
-    const getResumePdf = useCallback(async (id) => {
-        setLoading(true);
-        setError(null);
+    const getResumePdf = async (interviewReportId) => {
+        setLoading(true)
         try {
-            const res = await fetch(`${API_BASE}/interview/${id}/resume`, {
-                headers: authHeaders(),
-            });
-            if (!res.ok) throw new Error(`Request failed (${res.status})`);
-            const blob = await res.blob();
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement("a");
-            a.href     = url;
-            a.download = `resume-${id}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            setError(err.message);
-            console.error("[useInterview] getResumePdf:", err);
+            const response = await generateResumePdf({ interviewReportId })
+            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+            const link = document.createElement("a")
+            link.href = url
+            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
+            document.body.appendChild(link)
+            link.click()
+        } catch (error) {
+            console.log(error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, []);
+    }
 
-    return { loading, error, reports, report, generateReport, getReports, getReportById, getResumePdf };
-};
+    useEffect(() => {
+        if (interviewId) {
+            getReportById(interviewId)
+        } else {
+            getReports()
+        }
+    }, [ interviewId ])
+
+    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
+
+}
