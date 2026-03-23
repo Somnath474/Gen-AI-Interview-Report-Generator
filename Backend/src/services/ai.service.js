@@ -12,33 +12,41 @@ const ai = new GoogleGenAI({
 const interviewReportSchema = z.object({
     title: z.string(),
     matchScore: z.number().min(0).max(100),
+    summary: z.string(),  // ✅ new — candidate strength summary
 
     technicalQuestions: z.array(z.object({
         question: z.string(),
+        difficulty: z.enum(["easy", "medium", "hard"]),  // ✅ new
         intention: z.string(),
-        answer: z.string()
-    })).min(3),
+        answer: z.string(),
+        codeExample: z.string().optional()               // ✅ new — code if relevant
+    })).min(8),                                          // ✅ was 3, now 8
 
     behavioralQuestions: z.array(z.object({
         question: z.string(),
         intention: z.string(),
-        answer: z.string()
-    })).min(2),
+        answer: z.string(),                              // full STAR answer
+        redFlags: z.string()                             // ✅ new — what NOT to say
+    })).min(5),                                          // ✅ was 2, now 5
 
     skillGaps: z.array(z.object({
         skill: z.string(),
-        severity: z.enum(["low", "medium", "high"])
-    })).min(2),
+        severity: z.enum(["low", "medium", "high"]),
+        reason: z.string(),                              // ✅ new — why it's a gap
+        resources: z.array(z.string())                  // ✅ new — fix resources
+    })).min(4),                                          // ✅ was 2, now 4
 
     preparationPlan: z.array(z.object({
         day: z.number(),
         focus: z.string(),
-        tasks: z.array(z.string())
-    })).min(3)
+        tasks: z.array(z.string()).min(4),               // ✅ min 4 tasks per day
+        resources: z.array(z.string()),                  // ✅ new — links/books
+        expectedOutcome: z.string()                      // ✅ new — what you'll achieve
+    })).min(7)                                           // ✅ was 3, now full 7 days
 });
 
 
-// ================== HELPER (SAFE PARSE) ==================
+// ================== SAFE PARSE ==================
 function safeParseJSON(text) {
     try {
         return JSON.parse(text);
@@ -49,52 +57,47 @@ function safeParseJSON(text) {
 }
 
 
-// ================== FALLBACK DATA ==================
+// ================== FALLBACK ==================
 function fallbackData() {
     return {
         title: "Software Developer",
         matchScore: 70,
+        summary: "Candidate has a solid foundation. Focus on DSA and system design to crack top companies.",
 
         technicalQuestions: [
-            {
-                question: "Explain your main tech stack.",
-                intention: "Check technical understanding",
-                answer: "Explain clearly with examples"
-            },
-            {
-                question: "What is REST API?",
-                intention: "Check backend knowledge",
-                answer: "Explain client-server communication"
-            },
-            {
-                question: "What is DB indexing?",
-                intention: "Performance knowledge",
-                answer: "Explain optimization"
-            }
+            { question: "Explain event loop in Node.js", difficulty: "medium", intention: "Check async understanding", answer: "Node.js uses a single-threaded event loop...", codeExample: "" },
+            { question: "What is closure in JavaScript?", difficulty: "easy", intention: "Core JS knowledge", answer: "A closure is a function that retains access to its outer scope...", codeExample: "const counter = () => { let count = 0; return () => ++count }" },
+            { question: "Explain REST vs GraphQL", difficulty: "medium", intention: "API design knowledge", answer: "REST uses fixed endpoints, GraphQL uses a single endpoint with flexible queries", codeExample: "" },
+            { question: "What is database indexing?", difficulty: "medium", intention: "DB performance knowledge", answer: "Indexing creates a data structure for faster lookups...", codeExample: "" },
+            { question: "Explain JWT authentication", difficulty: "medium", intention: "Security knowledge", answer: "JWT consists of header, payload, signature encoded in base64...", codeExample: "" },
+            { question: "What is the difference between SQL and NoSQL?", difficulty: "easy", intention: "Database knowledge", answer: "SQL is relational with fixed schema, NoSQL is flexible...", codeExample: "" },
+            { question: "Explain SOLID principles", difficulty: "hard", intention: "OOP and architecture knowledge", answer: "Single responsibility, Open/closed, Liskov substitution...", codeExample: "" },
+            { question: "What is memoization?", difficulty: "medium", intention: "Optimization knowledge", answer: "Caching results of expensive function calls...", codeExample: "" }
         ],
 
         behavioralQuestions: [
-            {
-                question: "Tell me about yourself",
-                intention: "Communication skills",
-                answer: "Structured intro"
-            },
-            {
-                question: "Biggest challenge?",
-                intention: "Problem solving",
-                answer: "Use STAR method"
-            }
+            { question: "Tell me about yourself", intention: "Communication skills", answer: "I am a software developer with X years of experience...", redFlags: "Don't recite your resume — tell a story" },
+            { question: "Describe your biggest technical challenge", intention: "Problem solving", answer: "Using STAR method — Situation, Task, Action, Result...", redFlags: "Don't blame teammates" },
+            { question: "How do you handle tight deadlines?", intention: "Time management", answer: "I prioritize tasks using MoSCoW method...", redFlags: "Don't say you work overtime always" },
+            { question: "Tell me about a time you failed", intention: "Self-awareness", answer: "I once underestimated API rate limits...", redFlags: "Don't say you've never failed" },
+            { question: "Where do you see yourself in 5 years?", intention: "Ambition and retention", answer: "I want to grow into a senior/lead role...", redFlags: "Don't say you want to start your own company immediately" }
         ],
 
         skillGaps: [
-            { skill: "System Design", severity: "high" },
-            { skill: "DSA", severity: "medium" }
+            { skill: "System Design", severity: "high", reason: "Not mentioned in resume", resources: ["Grokking System Design", "System Design Primer GitHub"] },
+            { skill: "DSA", severity: "high", reason: "No competitive programming mentioned", resources: ["LeetCode", "NeetCode.io"] },
+            { skill: "Docker & Kubernetes", severity: "medium", reason: "DevOps skills missing", resources: ["Docker docs", "KodeKloud"] },
+            { skill: "Testing (Jest/Mocha)", severity: "low", reason: "No testing experience mentioned", resources: ["Jest docs", "Testing JS course"] }
         ],
 
         preparationPlan: [
-            { day: 1, focus: "DSA", tasks: ["Solve 5 problems"] },
-            { day: 2, focus: "Backend", tasks: ["Revise APIs"] },
-            { day: 3, focus: "Mock Interview", tasks: ["Practice"] }
+            { day: 1, focus: "DSA - Arrays & Strings", tasks: ["Solve 10 easy LeetCode problems", "Revise time complexity", "Watch NeetCode arrays playlist", "Implement binary search from scratch"], resources: ["LeetCode", "NeetCode.io"], expectedOutcome: "Comfortable with array manipulation problems" },
+            { day: 2, focus: "DSA - Trees & Graphs", tasks: ["Solve 5 tree problems", "Implement BFS and DFS", "Solve 3 graph problems", "Revise recursion"], resources: ["LeetCode", "Visualgo.net"], expectedOutcome: "Able to traverse any tree/graph structure" },
+            { day: 3, focus: "System Design Basics", tasks: ["Study load balancing", "Learn CAP theorem", "Design a URL shortener", "Study database sharding"], resources: ["Grokking System Design", "System Design Primer"], expectedOutcome: "Can design a basic scalable system" },
+            { day: 4, focus: "Backend & APIs", tasks: ["Revise REST principles", "Build a CRUD API", "Study JWT & OAuth", "Learn rate limiting"], resources: ["MDN Docs", "Postman Docs"], expectedOutcome: "Confident in API design questions" },
+            { day: 5, focus: "Database Deep Dive", tasks: ["Study indexing in depth", "Practice SQL joins", "Learn MongoDB aggregation", "Optimize slow queries"], resources: ["SQLZoo", "MongoDB University"], expectedOutcome: "Can answer any DB performance question" },
+            { day: 6, focus: "Behavioral & HR Round", tasks: ["Prepare 10 STAR stories", "Research company culture", "Prepare questions to ask interviewer", "Do a mock interview"], resources: ["Glassdoor", "LinkedIn"], expectedOutcome: "Confident and compelling in behavioral round" },
+            { day: 7, focus: "Full Mock Interview", tasks: ["Solve 3 medium LeetCode problems", "Do a full system design mock", "Revise all notes", "Rest and stay confident"], resources: ["Pramp.com", "Interviewing.io"], expectedOutcome: "Interview-ready with full confidence" }
         ]
     };
 }
@@ -104,28 +107,66 @@ function fallbackData() {
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
     const prompt = `
-You are an expert interview coach.
+You are a FAANG-level senior hiring manager and interview coach with 15+ years of experience.
 
-Analyze the candidate and return STRICT JSON only.
+Your job is to deeply analyze this candidate and generate the most DETAILED, PERSONALIZED, and ACTIONABLE interview preparation report possible.
 
+========================
+CANDIDATE PROFILE
+========================
 Resume:
 ${resume}
 
 Self Description:
 ${selfDescription}
 
-Job Description:
+Target Job Description:
 ${jobDescription}
 
-Rules:
-- Return ONLY JSON (no text)
-- Fill ALL fields
-- Give at least:
-  - 3 technical questions
-  - 2 behavioral questions
-  - 2 skill gaps
-  - 3 preparation days
-`;
+========================
+YOUR TASK
+========================
+Generate a comprehensive interview report with:
+
+1. TITLE — Exact role name from job description
+
+2. MATCH SCORE — Honest 0-100 score based on how well candidate fits
+
+3. SUMMARY — 3-4 sentence paragraph highlighting candidate's key strengths and biggest gaps for THIS specific role
+
+4. TECHNICAL QUESTIONS (minimum 8, mix of easy/medium/hard):
+   - MUST be highly specific to the job description technologies
+   - Include real-world scenario-based questions
+   - Give step-by-step detailed answers
+   - Include code examples where relevant
+   - Explain WHY interviewer asks this
+
+5. BEHAVIORAL QUESTIONS (minimum 5):
+   - Based on company culture and job level
+   - Full STAR method answers
+   - Include red flags — what NOT to say
+
+6. SKILL GAPS (minimum 4):
+   - Be brutally honest
+   - Explain exactly why it's a gap for THIS role
+   - Give 2-3 specific resources to fix each gap
+
+7. 7-DAY PREPARATION PLAN:
+   - Day-by-day, topic-specific plan
+   - Minimum 4 tasks per day
+   - Include specific resources (books, courses, websites)
+   - Include expected outcome per day
+   - Make it realistic and achievable
+
+========================
+STRICT RULES
+========================
+- Return ONLY valid JSON matching the schema — no extra text
+- Be EXTREMELY specific — no generic advice
+- Personalize EVERYTHING based on the resume and job description
+- Technical question answers must be interview-ready, detailed, and impressive
+- The 7-day plan must feel like it was made by a personal coach
+`
 
     try {
         const response = await ai.models.generateContent({
@@ -138,12 +179,9 @@ Rules:
         });
 
         const parsed = safeParseJSON(response.text);
-
         if (!parsed) return fallbackData();
 
-        // ✅ VALIDATE USING ZOD
         const validated = interviewReportSchema.safeParse(parsed);
-
         if (!validated.success) {
             console.error("❌ ZOD VALIDATION FAILED:", validated.error);
             return fallbackData();
@@ -171,12 +209,7 @@ async function generatePdfFromHtml(htmlContent) {
     const pdfBuffer = await page.pdf({
         format: "A4",
         printBackground: true,
-        margin: {
-            top: "20mm",
-            bottom: "20mm",
-            left: "15mm",
-            right: "15mm"
-        }
+        margin: { top: "20mm", bottom: "20mm", left: "15mm", right: "15mm" }
     });
 
     await browser.close();
@@ -185,99 +218,63 @@ async function generatePdfFromHtml(htmlContent) {
 
 
 // ================== GENERATE RESUME PDF ==================
-async function generateResumePdf({ resume, selfDescription, jobDescription }) {
-
-    const resumePdfSchema = z.object({
-        html: z.string()
-    });
+// ✅ Fixed — prompt now correctly asks for HTML resume, not interview report JSON
+async function generateResumePdf({ resume, jobDescription, selfDescription }) {
 
     const prompt = `
-You are a senior FAANG-level interview coach and hiring manager.
+You are a world-class resume designer and career coach.
 
-Analyze the candidate deeply and generate a HIGHLY DETAILED interview report.
+Create a stunning, ATS-optimized, single-page HTML resume for this candidate targeting the job below.
 
 ========================
 CANDIDATE DATA
 ========================
-Resume:
+Resume Content:
 ${resume}
 
 Self Description:
 ${selfDescription}
 
-Job Description:
+Target Job Description:
 ${jobDescription}
 
 ========================
-INSTRUCTIONS (VERY IMPORTANT)
+INSTRUCTIONS
 ========================
-- Return ONLY valid JSON (NO explanation, NO text outside JSON)
-- Be EXTREMELY DETAILED and SPECIFIC
-- Do NOT give generic answers
-- Personalize everything based on resume + job role
-- Each answer must be practical, real-world, and interview-ready
-
-========================
-OUTPUT FORMAT
-========================
-{
-  "title": "Exact job role name based on job description",
-
-  "matchScore": number (0-100),
-
-  "technicalQuestions": [
-    {
-      "question": "Advanced, role-specific technical question",
-      "intention": "Why interviewer asks this (deep reasoning)",
-      "answer": "STEP-BY-STEP detailed answer with examples, best practices, and mistakes to avoid"
-    }
-  ],
-
-  "behavioralQuestions": [
-    {
-      "question": "Real behavioral interview question",
-      "intention": "What skill is being tested",
-      "answer": "Answer using STAR method (Situation, Task, Action, Result) with strong storytelling"
-    }
-  ],
-
-  "skillGaps": [
-    {
-      "skill": "Specific missing skill",
-      "severity": "low | medium | high",
-      "improvementPlan": "How to fix this gap step-by-step with resources"
-    }
-  ],
-
-  "preparationPlan": [
-    {
-      "day": number,
-      "focus": "Specific topic (DSA / System Design / Backend / AI etc.)",
-      "tasks": [
-        "VERY SPECIFIC tasks (e.g., solve 5 medium LeetCode problems on trees)",
-        "Watch specific concept",
-        "Build mini project"
-      ],
-      "expectedOutcome": "What candidate will achieve after this day"
-    }
-  ]
-}
+- Return ONLY a JSON object: { "html": "<full html string>" }
+- The HTML must be complete, self-contained with inline CSS
+- Make it visually impressive — like a top 1% resume
+- ATS friendly — use proper headings and keywords from job description
+- Single page A4 layout
+- Use a clean, modern, professional design
 
 ========================
-QUALITY RULES
+DESIGN REQUIREMENTS
 ========================
-- Minimum:
-  - 5 technical questions (ADVANCED level)
-  - 3 behavioral questions
-  - 3 skill gaps
-  - 5-day preparation plan
-- Avoid generic lines like "practice more"
-- Give REAL actionable insights
-- Answers should feel like top 1% candidate guidance
+- Color scheme: Deep navy (#1a237e) header with white text, clean white body
+- Font: Use Google Font 'Inter' via CDN link
+- Sections: Summary, Skills, Experience, Projects, Education
+- Skills: Show as modern tags/pills
+- Use icons from CDN (font-awesome) for contact info
+- Add a subtle left border accent on experience items
+- Quantify achievements wherever possible based on resume content
+- Tailor the summary specifically to the job description keywords
+- Make it look like it was designed by a professional designer
 
-`;
+========================
+STRICT RULES
+========================
+- Return ONLY { "html": "..." } — no extra text
+- HTML must be complete with <!DOCTYPE html> tag
+- All CSS must be inline in a <style> tag in <head>
+- Must look great when printed to A4 PDF
+`
 
     try {
+        const resumePdfSchema = z.object({
+            html: z.string()
+        });
+
         const response = await ai.models.generateContent({
             model: "gemini-2.0-flash",
             contents: prompt,
