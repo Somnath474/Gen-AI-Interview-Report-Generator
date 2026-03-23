@@ -1,20 +1,185 @@
-.button{
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
+// ── Variables ─────────────────────────────────────────────────────────────────
+$bg-page:    #070810;
+$bg-card:    #0e1018;
+$bg-input:   #0b0d15;
+$border:     rgba(255, 255, 255, 0.07);
+$text:       #f0f2ff;
+$muted:      #5a6080;
+$accent:     #ff2d78;
+$cyan:       #00d4ff;
+$font-d:     'Syne', sans-serif;
+$font-b:     'Plus Jakarta Sans', sans-serif;
+
+// ── Generic Button ─────────────────────────────────────────────────────────────
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     border: none;
-    outline: none;
-    padding-inline: 1.5rem;
-    padding-block: 0.75rem;
-    border-radius: 1rem;
+    border-radius: 0.6rem;
+    font-family: $font-d;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
     cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
 
-    transition: all 0.3s ease-in-out;
+    &.primary-button {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, $accent 0%, darken($accent, 8%) 100%);
+        color: #fff;
+        box-shadow: 0 4px 16px rgba($accent, 0.25);
 
-    &.primary-button{
-        background-color: #e1034d;
-        color: white;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba($accent, 0.4);
+        }
+
+        &:active {
+            transform: translateY(0) scale(0.98);
+        }
+    }
+}
+
+// ── Auth Pages Shell ───────────────────────────────────────────────────────────
+main {
+    width: 100%;
+    min-height: 100vh;
+    background: $bg-page;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: $font-b;
+}
+
+// ── Form Container (Login / Register) ─────────────────────────────────────────
+.form-container {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(145deg, rgba(20, 22, 35, 0.97), rgba(14, 16, 24, 0.99));
+    border: 1px solid $border;
+    border-radius: 1.25rem;
+    padding: 2.5rem 2rem;
+    position: relative;
+    animation: fadeUp 0.5s ease both;
+
+    // Top gradient line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, $accent 35%, $cyan 65%, transparent);
+        border-radius: 1.25rem 1.25rem 0 0;
     }
 
-    &:active{
-        transform: scale(0.9);
+    h1 {
+        font-family: $font-d;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: $text;
+        margin-bottom: 1.75rem;
+        letter-spacing: -0.02em;
     }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: rgba($muted, 0.85);
+            font-family: $font-d;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: $bg-input;
+            border: 1px solid $border;
+            border-radius: 0.65rem;
+            color: $text;
+            font-family: $font-b;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+
+            &::placeholder {
+                color: rgba($muted, 0.55);
+            }
+
+            &:focus {
+                border-color: rgba($accent, 0.45);
+                box-shadow: 0 0 0 3px rgba($accent, 0.07);
+            }
+        }
+    }
+
+    // The submit button inside a form
+    button[type="submit"],
+    button.primary-button {
+        width: 100%;
+        padding: 0.8rem;
+        margin-top: 0.25rem;
+        background: linear-gradient(135deg, $accent, darken($accent, 8%));
+        color: #fff;
+        font-family: $font-d;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        border: none;
+        border-radius: 0.65rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba($accent, 0.4);
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
+
+    p {
+        font-size: 0.82rem;
+        color: rgba($muted, 0.8);
+        text-align: center;
+        font-family: $font-b;
+        margin-top: 0.5rem;
+
+        a {
+            color: $accent;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+
+            &:hover {
+                color: #ff6fa3;
+            }
+        }
+    }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }

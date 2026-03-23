@@ -64,7 +64,13 @@ async function registerUserController(req, res) {
 // LOGIN
 async function loginUserController(req, res) {
     try {
+        console.log("BODY:", req.body); // debug
+
         let { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "All fields required" });
+        }
 
         email = email.toLowerCase();
 
@@ -86,14 +92,14 @@ async function loginUserController(req, res) {
 
         const token = jwt.sign(
             { id: user._id, username: user.username },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || "fallbacksecret", // 🔥 safe
             { expiresIn: "1d" }
         );
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict",
+            secure: false, // 🔥 FIX
+            sameSite: "Lax",
             maxAge: 24 * 60 * 60 * 1000
         });
 
@@ -107,6 +113,7 @@ async function loginUserController(req, res) {
         });
 
     } catch (err) {
+        console.error("LOGIN ERROR:", err); // 🔥 MUST
         res.status(500).json({ message: "Server error" });
     }
 }

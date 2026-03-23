@@ -1,32 +1,83 @@
-import React from 'react'
-import "../auth.form.scss"
-import { Link } from 'react-router'
+import React, { useState } from "react";
+import "../auth.form.scss";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "../hooks/useAuth";
+
 const Login = () => {
+    const { loading, handleLogin } = useAuth();
+    const navigate = useNavigate();
 
-    const handleSubmit=(e)=>{
-        e.preventDefault()
+    const [email, setEmail]       = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError]       = useState("");
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+        const success = await handleLogin({ email, password });
+        if (success) {
+            navigate("/");
+        } else {
+            setError("Invalid email or password. Please try again.");
+        }
+    };
+
+    if (loading) {
+        return (
+            <main>
+                <h1 style={{ color: "#5a6080", fontFamily: "sans-serif" }}>Loading...</h1>
+            </main>
+        );
     }
-  return (
-    <main>
-        <div className="form-container">
-            <h1>Login</h1>
-            <form onSubmit={handleSubmit} > 
-                <div className="input-group">
-                    <label htmlFor="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter email address"/>
 
-                </div>
-                <div className="input-group">
-                    <label htmlFor="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter password"/> 
-                </div>
-                <button className="button primary-button">Login</button>
+    return (
+        <main>
+            <div className="form-container">
+                <h1>Login</h1>
 
-            </form>
-           <p>Don't have an Account ? <Link to="/register">Register</Link></p>   
-        </div>
-    </main>
-  )
-}
+                <form onSubmit={handleSubmit}>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter email"
+                            autoComplete="email"
+                            required
+                        />
+                    </div>
 
-export default Login
+                    <div className="input-group">
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter password"
+                            autoComplete="current-password"
+                            required
+                        />
+                    </div>
+
+                    {error && (
+                        <p style={{ color: "#ff4d6d", fontSize: "0.8rem", textAlign: "left", marginTop: "-4px" }}>
+                            {error}
+                        </p>
+                    )}
+
+                    <button type="submit" className="button primary-button">
+                        Login
+                    </button>
+                </form>
+
+                <p>
+                    Don't have an account?{" "}
+                    <Link to="/register">Register</Link>
+                </p>
+            </div>
+        </main>
+    );
+};
+
+export default Login;

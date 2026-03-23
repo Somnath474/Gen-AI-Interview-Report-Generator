@@ -1,0 +1,632 @@
+// ── Google Fonts Import ───────────────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+// ── Variables ─────────────────────────────────────────────────────────────────
+$bg-page:        #070810;
+$bg-card:        #0e1018;
+$bg-panel:       #111420;
+$bg-input:       #0b0d15;
+$border-color:   rgba(255,255,255,0.07);
+$text-primary:   #f0f2ff;
+$text-muted:     #5a6080;
+$accent:         #ff2d78;
+$accent-alt:     #ff6fa3;
+$cyan:           #00d4ff;
+$severity-high:  #ff4d6d;
+$severity-med:   #f5a623;
+$severity-low:   #2dd68c;
+$font-display:   'Syne', sans-serif;
+$font-body:      'Plus Jakarta Sans', sans-serif;
+
+// ── Keyframes ─────────────────────────────────────────────────────────────────
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+}
+
+@keyframes spin-ring {
+    to { stroke-dashoffset: -283; }
+}
+
+*::-webkit-scrollbar { width: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    &:hover { background: rgba(255,255,255,0.15); }
+}
+
+// ── Page Shell ────────────────────────────────────────────────────────────────
+.interview-page {
+    width: 100%;
+    min-height: 100vh;
+    background: $bg-page;
+    color: $text-primary;
+    font-family: $font-body;
+    display: flex;
+    align-items: stretch;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: fixed;
+        top: -30%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,45,120,0.07) 0%, transparent 70%);
+        pointer-events: none;
+    }
+}
+
+// Loading
+.loading-screen {
+    width: 100%;
+    min-height: 100vh;
+    background: $bg-page;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: $font-display;
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        background: linear-gradient(90deg, $text-muted, $accent, $text-muted);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 2s linear infinite;
+    }
+}
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+.interview-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    background: linear-gradient(145deg, rgba(18,20,32,0.97) 0%, rgba(14,16,24,0.99) 100%);
+    border: 1px solid $border-color;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    position: relative;
+    animation: fadeUp 0.5s ease both;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, $accent 30%, $cyan 70%, transparent);
+        pointer-events: none;
+    }
+}
+
+.interview-divider {
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, $border-color 15%, $border-color 85%, transparent);
+    flex-shrink: 0;
+}
+
+// ── Left Nav ──────────────────────────────────────────────────────────────────
+.interview-nav {
+    width: 230px;
+    flex-shrink: 0;
+    padding: 1.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .nav-content { display: flex; flex-direction: column; gap: 0.2rem; }
+
+    &__label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: rgba($text-muted, 0.6);
+        padding: 0 0.75rem;
+        margin-bottom: 0.6rem;
+        font-family: $font-display;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        width: 100%;
+        padding: 0.7rem 0.85rem;
+        background: none;
+        border: none;
+        border-radius: 0.6rem;
+        color: $text-muted;
+        font-family: $font-body;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s ease;
+        position: relative;
+
+        &:hover {
+            background: rgba(255,255,255,0.04);
+            color: $text-primary;
+        }
+
+        &--active {
+            background: rgba($accent, 0.1);
+            color: $accent;
+            border: 1px solid rgba($accent, 0.15);
+
+            .interview-nav__icon svg { stroke: $accent; }
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 0; top: 25%; bottom: 25%;
+                width: 2px;
+                background: $accent;
+                border-radius: 0 2px 2px 0;
+                box-shadow: 0 0 8px rgba($accent, 0.6);
+            }
+        }
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    // Download button
+    .button.primary-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.7rem 1rem;
+        background: linear-gradient(135deg, rgba($accent, 0.15), rgba($accent, 0.08));
+        border: 1px solid rgba($accent, 0.25);
+        border-radius: 0.6rem;
+        color: $accent;
+        font-family: $font-display;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-align: center;
+
+        &:hover {
+            background: linear-gradient(135deg, rgba($accent, 0.25), rgba($accent, 0.15));
+            box-shadow: 0 4px 20px rgba($accent, 0.2);
+            transform: translateY(-1px);
+        }
+    }
+}
+
+// ── Center Content ────────────────────────────────────────────────────────────
+.interview-content {
+    flex: 1;
+    padding: 2rem 2.25rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 3rem);
+    padding-bottom: 5rem;
+
+    section { min-height: 100%; }
+}
+
+.content-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $border-color;
+
+    h2 {
+        font-family: $font-display;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: $text-primary;
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+
+    &__count {
+        font-size: 0.72rem;
+        color: $text-muted;
+        background: rgba(255,255,255,0.05);
+        padding: 0.18rem 0.65rem;
+        border-radius: 2rem;
+        border: 1px solid $border-color;
+        font-family: $font-display;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+    }
+}
+
+// ── Question Cards ────────────────────────────────────────────────────────────
+.q-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.q-card {
+    background: rgba($bg-panel, 0.8);
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        border-color: rgba(255,255,255,0.12);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 1rem 1.1rem;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s;
+
+        &:hover { background: rgba(255,255,255,0.02); }
+    }
+
+    &__index {
+        flex-shrink: 0;
+        font-size: 0.65rem;
+        font-weight: 800;
+        font-family: $font-display;
+        color: $accent;
+        background: rgba($accent, 0.1);
+        border: 1px solid rgba($accent, 0.2);
+        border-radius: 0.35rem;
+        padding: 0.18rem 0.45rem;
+        margin-top: 2px;
+        letter-spacing: 0.04em;
+    }
+
+    &__question {
+        flex: 1;
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: $text-primary;
+        line-height: 1.55;
+    }
+
+    &__chevron {
+        flex-shrink: 0;
+        color: $text-muted;
+        transition: transform 0.25s ease, color 0.2s;
+        margin-top: 2px;
+
+        &--open {
+            transform: rotate(180deg);
+            color: $accent;
+        }
+    }
+
+    &__body {
+        padding: 1rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        border-top: 1px solid $border-color;
+        background: rgba(0,0,0,0.15);
+        animation: fadeUp 0.2s ease both;
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+
+        p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: rgba($text-primary, 0.7);
+            line-height: 1.65;
+        }
+    }
+
+    &__tag {
+        font-size: 0.65rem;
+        font-weight: 700;
+        font-family: $font-display;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        padding: 0.18rem 0.55rem;
+        border-radius: 0.3rem;
+        width: fit-content;
+
+        &--intention {
+            color: #c4b5fd;
+            background: rgba(#a78bfa, 0.1);
+            border: 1px solid rgba(#a78bfa, 0.2);
+        }
+
+        &--answer {
+            color: $severity-low;
+            background: rgba($severity-low, 0.1);
+            border: 1px solid rgba($severity-low, 0.2);
+        }
+    }
+}
+
+// ── Road Map ──────────────────────────────────────────────────────────────────
+.roadmap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 12px;
+        bottom: 12px;
+        width: 2px;
+        background: linear-gradient(to bottom, $accent, rgba($accent, 0.05));
+        border-radius: 1px;
+    }
+}
+
+.roadmap-day {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.85rem 0 0.85rem 3.75rem;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 23px;
+        top: 1.15rem;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: $bg-card;
+        border: 2px solid $accent;
+        box-shadow: 0 0 8px rgba($accent, 0.4);
+        transition: box-shadow 0.2s;
+    }
+
+    &:hover::before {
+        box-shadow: 0 0 16px rgba($accent, 0.7);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    &__badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        font-family: $font-display;
+        color: $accent;
+        background: rgba($accent, 0.1);
+        border: 1px solid rgba($accent, 0.25);
+        padding: 0.12rem 0.55rem;
+        border-radius: 2rem;
+        letter-spacing: 0.05em;
+    }
+
+    &__focus {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 600;
+        font-family: $font-display;
+        color: $text-primary;
+    }
+
+    &__tasks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+
+        li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            font-size: 0.84rem;
+            color: rgba($text-primary, 0.55);
+            line-height: 1.55;
+        }
+    }
+
+    &__bullet {
+        flex-shrink: 0;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba($accent, 0.4);
+        margin-top: 8px;
+    }
+}
+
+// ── Right Sidebar ─────────────────────────────────────────────────────────────
+.interview-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, $border-color 20%, $border-color 80%, transparent);
+}
+
+// Match Score
+.match-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+
+    &__label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: $text-muted;
+        margin: 0;
+        align-self: flex-start;
+        font-family: $font-display;
+    }
+
+    &__ring {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        border: none;
+
+        // outer glow ring
+        &::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 3px solid;
+            opacity: 0.25;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+
+        &.score--high {
+            background: radial-gradient(circle, rgba($severity-low, 0.08) 0%, transparent 70%);
+            border: 3px solid $severity-low;
+            box-shadow: 0 0 24px rgba($severity-low, 0.25), inset 0 0 20px rgba($severity-low, 0.05);
+
+            &::before { border-color: $severity-low; }
+        }
+
+        &.score--mid {
+            background: radial-gradient(circle, rgba($severity-med, 0.08) 0%, transparent 70%);
+            border: 3px solid $severity-med;
+            box-shadow: 0 0 24px rgba($severity-med, 0.25), inset 0 0 20px rgba($severity-med, 0.05);
+
+            &::before { border-color: $severity-med; }
+        }
+
+        &.score--low {
+            background: radial-gradient(circle, rgba($severity-high, 0.08) 0%, transparent 70%);
+            border: 3px solid $severity-high;
+            box-shadow: 0 0 24px rgba($severity-high, 0.25), inset 0 0 20px rgba($severity-high, 0.05);
+
+            &::before { border-color: $severity-high; }
+        }
+    }
+
+    &__value {
+        font-family: $font-display;
+        font-size: 2rem;
+        font-weight: 800;
+        color: $text-primary;
+        line-height: 1;
+        letter-spacing: -0.04em;
+    }
+
+    &__pct {
+        font-size: 0.8rem;
+        color: $text-muted;
+        font-weight: 600;
+        margin-top: -2px;
+    }
+
+    &__sub {
+        margin: 0;
+        font-size: 0.73rem;
+        color: $severity-low;
+        text-align: center;
+        font-weight: 500;
+    }
+}
+
+// Skill Gaps
+.skill-gaps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    &__label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: $text-muted;
+        margin: 0;
+        font-family: $font-display;
+    }
+
+    &__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+}
+
+.skill-tag {
+    font-size: 0.73rem;
+    font-weight: 600;
+    padding: 0.28rem 0.7rem;
+    border-radius: 0.4rem;
+    border: 1px solid;
+    cursor: default;
+    font-family: $font-body;
+    transition: transform 0.15s;
+
+    &:hover { transform: scale(1.04); }
+
+    &--high {
+        color: $severity-high;
+        background: rgba($severity-high, 0.1);
+        border-color: rgba($severity-high, 0.25);
+    }
+
+    &--medium {
+        color: $severity-med;
+        background: rgba($severity-med, 0.1);
+        border-color: rgba($severity-med, 0.25);
+    }
+
+    &--low {
+        color: $severity-low;
+        background: rgba($severity-low, 0.1);
+        border-color: rgba($severity-low, 0.25);
+    }
+}
