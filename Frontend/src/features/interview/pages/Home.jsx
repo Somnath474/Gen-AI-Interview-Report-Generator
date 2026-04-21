@@ -58,13 +58,19 @@ const Home = () => {
     }
 
     if (loading) {
-        return (
-            <main className='loading-screen'>
-                <h1>Analyzing your profile...</h1>
-                <p>Our AI is building your personalized interview strategy. This takes ~30 seconds.</p>
-            </main>
-        )
-    }
+    return (
+        <main className="loading-screen">
+            <div className="loader"></div>
+
+            <h1>Analyzing your profile...</h1>
+
+            <p>
+                Our AI is building your personalized interview strategy.
+                This usually takes around 30 seconds.
+            </p>
+        </main>
+    );
+}
 
     return (
         <div className='home-page'>
