@@ -5,7 +5,7 @@ const app=express();
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-    origin:"https://gen-ai-interview-report-generator.vercel.app/login",
+    origin:"http://localhost:5173",
     credentials:true
 }))
 /*reuire all the routes here*/
