@@ -4,30 +4,42 @@ const interviewReportModel = require("../models/interviewReport.model");
 
 
 // ================== GENERATE REPORT ==================
+// ================== GENERATE REPORT ==================
 async function generateInterviewReportController(req, res) {
     try {
         const resumeFile = req.file;
-
-        if (!resumeFile) {
-            return res.status(400).json({ message: "Resume file is required" });
-        }
-
-        // ✅ CORRECT PDF PARSE
-        const resumeContent = await pdfParse(req.file.buffer);
-
         const { selfDescription, jobDescription } = req.body;
 
+        // ✅ Allow either resume OR selfDescription (not both required)
+        if (!resumeFile && !selfDescription?.trim()) {
+            return res.status(400).json({ 
+                message: "Please provide either a resume or a self description." 
+            });
+        }
+
+        if (!jobDescription?.trim()) {
+            return res.status(400).json({ 
+                message: "Job description is required." 
+            });
+        }
+
+        // ✅ Only parse PDF if file was uploaded
+        let resumeText = "";
+        if (resumeFile) {
+            const resumeContent = await pdfParse(resumeFile.buffer);
+            resumeText = resumeContent.text;
+        }
+
         const interViewReportByAi = await generateInterviewReport({
-            resume: resumeContent.text,
-            selfDescription,
+            resume: resumeText,           // ✅ empty string if no file
+            selfDescription: selfDescription || "",
             jobDescription
         });
 
-        // ✅ SAFE TITLE FIX
         const interviewReport = await interviewReportModel.create({
             user: req.user?.id,
-            resume: resumeContent.text,
-            selfDescription,
+            resume: resumeText,
+            selfDescription: selfDescription || "",
             jobDescription,
             title: interViewReportByAi.title || "Software Developer",
             ...interViewReportByAi
@@ -43,7 +55,6 @@ async function generateInterviewReportController(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
-
 
 // ================== GET BY ID ==================
 async function getInterviewReportByIdController(req, res) {
