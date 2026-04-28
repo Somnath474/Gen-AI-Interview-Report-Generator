@@ -10,7 +10,8 @@ app.use(cookieParser());
 // ✅ FIXED CORS (supports local + deployed frontend)
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://gen-ai-interview-report-generator-4.onrender.com" // change if your frontend URL is different
+  "https://gen-ai-interview-report-generator-4.onrender.com",
+  "https://gen-ai-interview-report-generator.vercel.app" // change if your frontend URL is different
 ];
 
 app.use(cors({
