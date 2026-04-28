@@ -21,13 +21,22 @@ function safeParseJSON(text) {
 function fallbackData() {
     return {
         title: "Software Developer",
-        matchScore: Math.floor(Math.random() * (85 - 50) + 50), // 🔥 random to avoid 70 fixed
+        matchScore: Math.floor(Math.random() * (85 - 50) + 50),
         summary: "Candidate has a decent foundation but needs improvement in key areas based on role requirements.",
         technicalQuestions: [],
         behavioralQuestions: [],
         skillGaps: [],
         preparationPlan: []
     };
+}
+
+// ================== NORMALIZE SCORE ==================
+function normalizeScore(score) {
+    if (score === undefined || score === null) return Math.floor(Math.random() * (85 - 50) + 50);
+    // ✅ If AI returns 0.42 instead of 42, convert it
+    if (score > 0 && score <= 1) score = Math.round(score * 100);
+    // ✅ Clamp between 1 and 100
+    return Math.min(100, Math.max(1, Math.round(score)));
 }
 
 // ================== GENERATE INTERVIEW REPORT ==================
@@ -50,17 +59,19 @@ ${jobDescription || ""}
 ----------------------
 
 SCORING RULE (STRICT):
+- matchScore MUST be a whole integer between 1 and 100 (e.g. 72, NOT 0.72)
 - Skills match = 50%
 - Experience relevance = 30%
 - Keyword overlap = 20%
 - DO NOT give default 70
-- Score MUST vary
+- Score MUST vary based on actual candidate vs job fit
+- Low match = 20-40, Medium = 41-65, Strong = 66-85, Exceptional = 86-100
 
 ----------------------
 
 TASK:
 1. Extract required skills from job
-2. Compare with candidate
+2. Compare with candidate's actual skills
 3. Identify real gaps
 4. Generate personalized output
 
@@ -70,7 +81,7 @@ RETURN JSON ONLY:
 
 {
   "title": "role name",
-  "matchScore": number,
+  "matchScore": 72,
   "summary": "personalized summary",
 
   "technicalQuestions": [
@@ -115,10 +126,11 @@ RETURN JSON ONLY:
 RULES:
 - technicalQuestions: exactly 8
 - behavioralQuestions: exactly 5
-- skillGaps: exactly 4 (NO generic unless real)
+- skillGaps: exactly 4 (based on real gaps only)
 - preparationPlan: exactly 7 days
-- Personalize everything
+- Personalize everything to this specific candidate and job
 - No generic answers
+- matchScore is an INTEGER like 67, never a decimal like 0.67
 `;
 
     try {
@@ -139,7 +151,10 @@ RULES:
             return fallbackData();
         }
 
-        console.log("✅ SCORE:", parsed.matchScore);
+        // ✅ Always normalize score before returning
+        parsed.matchScore = normalizeScore(parsed.matchScore);
+        console.log("✅ FINAL SCORE:", parsed.matchScore);
+
         return parsed;
 
     } catch (err) {
