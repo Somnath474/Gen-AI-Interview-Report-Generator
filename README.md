@@ -1,4 +1,5 @@
-https://gen-ai-interview-report-generator.vercel.app/login
+https://gen-ai-interview-report-generator.vercel.app
+
 
 
 
